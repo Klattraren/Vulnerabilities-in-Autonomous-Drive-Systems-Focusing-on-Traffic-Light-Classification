@@ -9,3 +9,5 @@ working_model_clean_data/trafficlights
 /flower_test
 /flower_venv
 Assignment\Part2\checkpoints\
+/Assignment/Part2/checkpoints
+Assignment/Part2/checkpoints/parameters_round_0.pkl
