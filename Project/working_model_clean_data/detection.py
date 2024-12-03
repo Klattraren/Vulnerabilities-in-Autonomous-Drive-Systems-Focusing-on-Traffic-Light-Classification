@@ -87,7 +87,17 @@ def standardize_input(image):
 def read_traffic_lights_object(image, boxes, scores, classes, max_boxes_to_draw=20, min_score_thresh=0.5,
                                traffic_ligth_label=10,index=0, padding=3):
     im_width, im_height = image.size
-    stop_flag = False
+    # areas = []
+    # for i in range(min(max_boxes_to_draw, boxes.shape[0])):
+    #     ymin, xmin, ymax, xmax = tuple(boxes[i].tolist())
+    #     (left, right, top, bottom) = (xmin * im_width, xmax * im_width,
+    #                                       ymin * im_height, ymax * im_height)
+    #     areas.append((left - right) * (top - bottom))
+
+    # print(areas)
+    # index = np.argmax(areas)
+    # print(index)
+
     for i in range(min(max_boxes_to_draw, boxes.shape[0])):
         if scores[i] > min_score_thresh and classes[i] == traffic_ligth_label:
             ymin, xmin, ymax, xmax = tuple(boxes[i].tolist())
@@ -103,7 +113,7 @@ def read_traffic_lights_object(image, boxes, scores, classes, max_boxes_to_draw=
             # save video frames
             crop_img_bgr = cv2.cvtColor(crop_img, cv2.COLOR_RGB2BGR)
             cv2.imwrite('saved_video_feed/cropped/frame_' + str(index) + '.png', crop_img_bgr)
-
+            return i
 
 
 ### Function to Plot detected image
@@ -210,8 +220,8 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, plot_
 
 
                 read_traffic_lights_object(image, np.squeeze(boxes), np.squeeze(scores),np.squeeze(classes).astype(np.int32), index=index_counter,padding=padding)
-
                 # Visualization of the results of a detection.
+
                 if plot_flag:
                     plot_origin_image(image_np, boxes, classes, scores, category_index)
                 cv2.imwrite('saved_video_feed/uncropped/frame_' + str(index_counter) + '.png', cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
