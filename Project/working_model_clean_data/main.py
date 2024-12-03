@@ -85,7 +85,7 @@ def standardize_input(image):
     return standard_im
 
 def read_traffic_lights_object(image, boxes, scores, classes, max_boxes_to_draw=20, min_score_thresh=0.5,
-                               traffic_ligth_label=10):
+                               traffic_ligth_label=10,index=0):
     im_width, im_height = image.size
     stop_flag = False
     for i in range(min(max_boxes_to_draw, boxes.shape[0])):
@@ -95,9 +95,14 @@ def read_traffic_lights_object(image, boxes, scores, classes, max_boxes_to_draw=
                                           ymin * im_height, ymax * im_height)
             crop_img = image.crop((left-5, top-5, right+5, bottom+5))
 
-            print(crop_img)
+
+            # print(crop_img)
             crop_img = standardize_input(crop_img)
             plt.imshow(crop_img)
+
+            # save video frames
+            cv2.imwrite('saved_video_feed/cropped/frame_' + str(index) + '.png', crop_img)
+
 
 
 ### Function to Plot detected image
@@ -188,6 +193,7 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, plot_
             detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
             num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
+            index_counter = 0
             for image_path in TEST_IMAGE_PATHS:
                 image = Image.open(image_path)
 
@@ -202,7 +208,7 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, plot_
                     feed_dict={image_tensor: image_np_expanded})
 
 
-                read_traffic_lights_object(image, np.squeeze(boxes), np.squeeze(scores),np.squeeze(classes).astype(np.int32))
+                read_traffic_lights_object(image, np.squeeze(boxes), np.squeeze(scores),np.squeeze(classes).astype(np.int32), index=index_counter)
                 # if stop_flag:
                 #     # print('{}: stop'.format(image_path))  # red or yellow
                 #     commands.append(False)
@@ -215,6 +221,8 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, plot_
                 # Visualization of the results of a detection.
                 if plot_flag:
                     plot_origin_image(image_np, boxes, classes, scores, category_index)
+                cv2.imwrite('saved_video_feed/uncropped/frame_' + str(index_counter) + '.png', cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
+                index_counter += 1
 
     return commands
 
