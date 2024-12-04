@@ -13,5 +13,8 @@ Assignment\Part2\checkpoints\
 Assignment/Part2/checkpoints/parameters_round_0.pkl
 /.aitraffic
 /Project/working_model_clean_data/trafficlights
+/Project/working_model_clean_data/faster
+/Project/working_model_clean_data/saved_video_feed
+
 Project/working_model_clean_data/faster_rcnn_resnet101_coco_11_06_2017.tar.gz
 Project/working_model_clean_data/faster_rcnn_resnet101_coco_11_06_2017/frozen_inference_graph.pb
