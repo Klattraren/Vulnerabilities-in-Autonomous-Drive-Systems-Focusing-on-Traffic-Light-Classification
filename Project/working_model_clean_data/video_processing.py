@@ -33,7 +33,7 @@ def split_video_into_frames(input_video_path, temp_dir, model_name, num_images):
 
     # Run detect_traffic_lights on the saved frames
     # Returns detected boxes, classes and scores.
-    box_list, class_list, score_list = detect_traffic_lights(temp_dir, model_name, Num_images=num_images, plot_flag=True, padding=2)
+    box_list, class_list, score_list = detect_traffic_lights(temp_dir, model_name, Num_images=num_images, padding=2)
     print(f"Detected {len(box_list)} traffic lights")
     return box_list, class_list, score_list
 
