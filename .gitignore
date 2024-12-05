@@ -20,3 +20,5 @@ Project/working_model_clean_data/faster_rcnn_resnet101_coco_11_06_2017.tar.gz
 Project/working_model_clean_data/faster_rcnn_resnet101_coco_11_06_2017/frozen_inference_graph.pb
 Project/faster_rcnn_resnet101_coco_11_06_2017.tar.gz
 Project/faster_rcnn_resnet101_coco_11_06_2017/frozen_inference_graph.pb
+/Project/working_model_clean_data/video_processing/temp_after
+
