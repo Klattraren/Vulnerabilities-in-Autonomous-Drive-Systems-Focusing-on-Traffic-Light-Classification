@@ -112,7 +112,7 @@ def read_traffic_lights_object(image, boxes, scores, classes, max_boxes_to_draw=
 
             # save video frames
             crop_img_bgr = cv2.cvtColor(crop_img, cv2.COLOR_RGB2BGR)
-            cv2.imwrite('saved_video_feed/cropped/frame_' + str(index) + '.png', crop_img_bgr)
+            cv2.imwrite('data/saved_video_feed/cropped/frame_' + str(index) + '.png', crop_img_bgr)
             return i
 
 
@@ -224,7 +224,7 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, plot_
 
                 if plot_flag:
                     plot_origin_image(image_np, boxes, classes, scores, category_index)
-                cv2.imwrite('saved_video_feed/uncropped/frame_' + str(index_counter) + '.png', cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
+                cv2.imwrite('data/saved_video_feed/uncropped/frame_' + str(index_counter) + '.png', cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
                 index_counter += 1
 
     return commands

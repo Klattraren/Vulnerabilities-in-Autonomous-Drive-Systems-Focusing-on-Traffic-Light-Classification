@@ -14,3 +14,5 @@ Assignment/Part2/checkpoints/parameters_round_0.pkl
 /.aitraffic
 
 /Project/data/traffic_light_images_large
+/Project/faster_rcnn_resnet101_coco_11_06_2017
+Project/faster_rcnn_resnet101_coco_11_06_2017.tar.gz
