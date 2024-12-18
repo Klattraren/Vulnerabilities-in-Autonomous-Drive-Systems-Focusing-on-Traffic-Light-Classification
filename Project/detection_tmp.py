@@ -58,7 +58,7 @@ def read_traffic_lights_object(image, boxes, scores, classes, max_boxes_to_draw=
 
             # save video frames
             crop_img_bgr = cv2.cvtColor(crop_img, cv2.COLOR_RGB2BGR)
-            cv2.imwrite('./video_processing/temp_crop/frame_{:04d}.png'.format(index), crop_img_bgr)
+            cv2.imwrite('data/video_processing/temp_crop/frame_{:04d}.png'.format(index), crop_img_bgr)
             return
 
 
