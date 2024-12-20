@@ -548,9 +548,6 @@ def customvisualize_boxes_and_labels(image,
   conf_i = 0
   pred_i = 0
   for i in range(min(max_boxes_to_draw, boxes.shape[0])):
-    print("scores length: ", len(scores))
-    print("confidences: ", confidences)
-    print("predicted_color: ", predicted_colors)
     if scores is None or (i < len(scores) and np.any(scores[i] > min_score_thresh)):
       box = tuple(boxes[i].tolist())
       if instance_masks is not None:
