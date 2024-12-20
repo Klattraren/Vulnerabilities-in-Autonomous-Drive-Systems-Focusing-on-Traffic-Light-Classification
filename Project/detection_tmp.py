@@ -40,10 +40,11 @@ def standardize_input(image):
 
     return standard_im
 
-def read_traffic_lights_object(image, boxes, scores, classes, max_boxes_to_draw=20, min_score_thresh=0.5,
+def read_traffic_lights_object(image, boxes, scores, classes, max_boxes_to_draw=20, min_score_thresh=0.95,
                                traffic_ligth_label=10,index=0, padding=3):
     im_width, im_height = image.size
     stop_flag = False
+    img_i = 0
     for i in range(min(max_boxes_to_draw, boxes.shape[0])):
         if scores[i] > min_score_thresh and classes[i] == traffic_ligth_label:
             ymin, xmin, ymax, xmax = tuple(boxes[i].tolist())
@@ -52,35 +53,37 @@ def read_traffic_lights_object(image, boxes, scores, classes, max_boxes_to_draw=
             crop_img = image.crop((left-padding, top-padding, right+padding, bottom+padding))
 
 
-            print(crop_img)
+            # print("crop_img:", crop_img)
             crop_img = standardize_input(crop_img)
             # plt.imshow(crop_img)
 
             # save video frames
             crop_img_bgr = cv2.cvtColor(crop_img, cv2.COLOR_RGB2BGR)
-            cv2.imwrite('data/video_processing/temp_crop/frame_{:04d}.png'.format(index), crop_img_bgr)
-            return
+            os.makedirs('./data/video_processing/temp_crop/frame_{:04d}'.format(index), exist_ok=True)
+            cv2.imwrite('./data/video_processing/temp_crop/frame_{:04d}/{:04d}.png'.format(index, img_i), crop_img_bgr)
+            img_i += 1
+    return
 
 
 
 ### Function to Plot detected image
 
-def plot_origin_image(image_np, boxes, classes, scores, confidence, prediction_color):
+def plot_origin_image(image_np, boxes, classes, scores, confidences, prediction_colors):
 
     # Size of the output images.
     IMAGE_SIZE = (12, 8)
     vis_util.customvisualize_boxes_and_labels(
         image_np,
-        np.squeeze(boxes[:1]),
+        np.squeeze(boxes),
         np.squeeze(classes).astype(np.int32),
         np.squeeze(scores),
-        confidence,
-        prediction_color,
-        min_score_thresh=.9,
+        confidences,
+        prediction_colors,
+        min_score_thresh=.95,
         use_normalized_coordinates=True,
         line_thickness=3)
-    plt.figure(figsize=IMAGE_SIZE)
-    plt.imshow(image_np)
+    # plt.figure(figsize=IMAGE_SIZE)
+    # plt.imshow(image_np)
 
     # save augmented images into hard drive
     # plt.savefig( 'output_images/ouput_' + str(idx) +'.png')
@@ -89,17 +92,17 @@ def plot_origin_image(image_np, boxes, classes, scores, confidence, prediction_c
 
 ### Function to Detect Traffic Lights and to Recognize Color
 
-def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, padding=3):
+def detect_traffic_lights(PATH_TO_FRAME_IMAGES_DIR, MODEL_NAME, Num_images, padding=3):
     """
     Detect traffic lights and draw bounding boxes around the traffic lights
-    :param PATH_TO_TEST_IMAGES_DIR: testing image directory
+    :param PATH_TO_FRAME_IMAGES_DIR: testing image directory
     :param MODEL_NAME: name of the model used in the task
     :return: commands: True: go, False: stop
     """
 
-    # --------test images------
-    TEST_IMAGE_PATHS = [
-        os.path.join(PATH_TO_TEST_IMAGES_DIR, 'frame_{:04d}.png'.format(i)) for i in range(Num_images)
+    # --------frame images------
+    FRAME_IMAGE_PATHS = [
+        os.path.join(PATH_TO_FRAME_IMAGES_DIR, 'frame_{:04d}.png'.format(i)) for i in range(Num_images)
     ]
 
     # What model to download
@@ -154,10 +157,10 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, paddi
             num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
             index_counter = 0
-            box_list = []
+            box_list = [[] for _ in range(Num_images)]
+            score_list = [[] for _ in range(Num_images)]
             class_list = []
-            score_list = []
-            for image_path in TEST_IMAGE_PATHS:
+            for image_path in FRAME_IMAGE_PATHS:
                 image = Image.open(image_path)
 
                 # the array based representation of the image will be used later in order to prepare the
@@ -170,23 +173,66 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, paddi
                     [detection_boxes, detection_scores, detection_classes, num_detections],
                     feed_dict={image_tensor: image_np_expanded})
                 
-                box_list.append(boxes)
+                box_list[index_counter] = boxes
+                score_list[index_counter] = scores
                 class_list.append(classes)
-                score_list.append(scores)
-
-
-                read_traffic_lights_object(image, np.squeeze(boxes), np.squeeze(scores),np.squeeze(classes).astype(np.int32), index=index_counter,padding=padding)
+                read_traffic_lights_object(image, np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes).astype(np.int32), index=index_counter, padding=padding)
                 index_counter += 1
                 
     return box_list, class_list, score_list
 
 
-def annotate_image(image_path, output_image_path, boxes, classes, scores, prediction_color, confidence):
+### Function to add the cropped images in the top left corner of the original image
+def add_cropped_images(image, index, prediction_color, confidences):
+    """
+    Add the cropped images in the top left corner of the original image with labels.
+    :param image: original image
+    :param index: index of the frame
+    :param colors: list of colors for each cropped image
+    :param probabilities: list of probabilities for each cropped image
+    :return: image with cropped images and labels
+    """
+    try:
+        cropped_images_dir = './data/video_processing/temp_crop/frame_{:04d}'.format(index)
+        cropped_images = [cv2.imread(os.path.join(cropped_images_dir, img)) for img in os.listdir(cropped_images_dir) if img.endswith('.png')]
+        
+        x_offset = 0
+        padding = 10  # Padding between cropped images
+        for i, cropped_image in enumerate(cropped_images):
+            if cropped_image is not None:
+                cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2RGB)
+                cropped_image = cv2.resize(cropped_image, (cropped_image.shape[1] * 3, cropped_image.shape[0] * 3))
+                image[0:cropped_image.shape[0], x_offset:x_offset+cropped_image.shape[1]] = cropped_image
+                
+                # Add label below the cropped image
+                label = f"{prediction_color[i]}: {int(confidences[i])}%"
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 0.5
+                font_color = (0, 0, 0)  # Black color
+                thickness = 1
+                label_size = cv2.getTextSize(label, font, font_scale, thickness)[0]
+                label_x = x_offset
+                label_y = cropped_image.shape[0] + label_size[1] + 10
+                cv2.putText(image, label, (label_x, label_y), font, font_scale, font_color, thickness, lineType=cv2.LINE_AA)  # CadetBlue background
+                
+                x_offset += cropped_image.shape[1] + padding
+    except FileNotFoundError:
+        pass
+    
+    return image
+
+
+def annotate_image(image_path, output_image_path, boxes, classes, scores, prediction_color, confidences, plot_flag=True):
     image = Image.open(image_path)
     image_np = load_image_into_numpy_array(image)
     
+    if plot_flag:
+        plot_origin_image(image_np, boxes, classes, scores, confidences, prediction_color)
 
-    plot_origin_image(image_np, boxes, classes, scores, confidence, prediction_color)
+    # Add the cropped images in the top left corner of the original image
+    index = int(image_path.split('/')[-1].split('_')[1].split('.')[0])
+    image_np = add_cropped_images(image_np, index, prediction_color, confidences)
+
     cv2.imwrite(os.path.join(output_image_path), cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
 
 
@@ -201,16 +247,16 @@ if __name__ == "__main__":
     print("Current Directory: ", os.getcwd())
 
     # Specify test directory path
-    PATH_TO_TEST_IMAGES_DIR = './working_model_clean_data/video_processing/temp_frames'
+    PATH_TO_FRAME_IMAGES_DIR = './data/working_model_clean_data/video_processing/temp_frames'
     
     #Print the amount of files in directory
-    print("TEST: ",len([name for name in os.listdir(PATH_TO_TEST_IMAGES_DIR) if os.path.isfile(os.path.join(PATH_TO_TEST_IMAGES_DIR, name))]))
+    print("TEST: ",len([name for name in os.listdir(PATH_TO_FRAME_IMAGES_DIR) if os.path.isfile(os.path.join(PATH_TO_FRAME_IMAGES_DIR, name))]))
 
     # Specify downloaded model name
     # MODEL_NAME ='ssd_mobilenet_v1_coco_11_06_2017'    # for faster detection but low accuracy
     MODEL_NAME = 'faster_rcnn_resnet101_coco_11_06_2017'  # for improved accuracy
 
-    commands = detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images)
+    commands = detect_traffic_lights(PATH_TO_FRAME_IMAGES_DIR, MODEL_NAME, Num_images)
     print(commands)  # commands to print action type, for 'Go' this will return True and for 'Stop' this will return False
 
 

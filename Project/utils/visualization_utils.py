@@ -494,8 +494,8 @@ def customvisualize_boxes_and_labels(image,
                                     boxes,
                                     classes,
                                     scores,
-                                    confidence,
-                                    predicted_color,
+                                    confidences,
+                                    predicted_colors,
                                     instance_masks=None,
                                     keypoints=None,
                                     use_normalized_coordinates=False,
@@ -545,8 +545,13 @@ def customvisualize_boxes_and_labels(image,
   box_to_keypoints_map = collections.defaultdict(list)
   if not max_boxes_to_draw:
     max_boxes_to_draw = boxes.shape[0]
+  conf_i = 0
+  pred_i = 0
   for i in range(min(max_boxes_to_draw, boxes.shape[0])):
-    if scores is None or scores[i] > min_score_thresh:
+    print("scores length: ", len(scores))
+    print("confidences: ", confidences)
+    print("predicted_color: ", predicted_colors)
+    if scores is None or (i < len(scores) and np.any(scores[i] > min_score_thresh)):
       box = tuple(boxes[i].tolist())
       if instance_masks is not None:
         box_to_instance_masks_map[box] = instance_masks[i]
@@ -555,9 +560,18 @@ def customvisualize_boxes_and_labels(image,
       if scores is None:
         box_to_color_map[box] = 'black'
       else:
-
-        # if classes[i] in category_index.keys():
         if classes[i] == 10:
+          try:
+            confidence = confidences[conf_i]
+            conf_i += 1
+          except IndexError:
+            confidence = 0
+          try:
+            predicted_color = predicted_colors[pred_i]
+            pred_i += 1
+          except IndexError:
+            predicted_color = 'None'
+          
           display_str = '{}: {}%'.format(
             predicted_color,
             int(confidence))

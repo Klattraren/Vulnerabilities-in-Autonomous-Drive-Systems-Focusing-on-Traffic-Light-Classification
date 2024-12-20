@@ -63,25 +63,5 @@ def process_frames_and_create_video(temp_after, output_video_path, fps, frame_wi
         output_video.write(frame)
 
     output_video.release()
+
     print(f"Processed video saved to: {output_video_path}")
-
-# # Usage Example
-# input_video_path = './working_model_clean_data/video_processing/IMG_5189.mp4'
-# output_video_path = './working_model_clean_data/video_processing/output_video.mp4'
-# temp_dir = "./working_model_clean_data/video_processing/temp_frames"
-# temp_after = "./working_model_clean_data/video_processing/temp_after"
-
-# # Split video into frames and run traffic light detection
-# MODEL_NAME = 'faster_rcnn_resnet101_coco_11_06_2017'  # for improved accuracy
-# Num_images = len([name for name in os.listdir(temp_dir) if os.path.isfile(os.path.join(temp_dir, name))])
-# split_video_into_frames(input_video_path, temp_dir, MODEL_NAME, Num_images)
-
-# # Get video properties
-# video = cv2.VideoCapture(input_video_path)
-# fps = video.get(cv2.CAP_PROP_FPS)
-# frame_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
-# frame_height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-# video.release()
-
-# # Process frames and create video
-# process_frames_and_create_video(temp_after, output_video_path, fps, frame_width, frame_height)
